@@ -13,7 +13,6 @@ const publicUser = (user) => ({
 })
 
 export const register = async (req, res) => {
-  console.log('REGISTER BODY:', req.body)
 
   try {
     const { name, email, password, phone, address } = req.body
@@ -105,33 +104,25 @@ export const updateMe = async (req, res) => {
   try {
     const { name, phone, address } = req.body
 
-    if (!name?.trim()) {
+    if (!name || !name.trim()) {
       return res.status(400).json({
         message: 'Vui lòng nhập họ tên.',
       })
     }
 
-    const user = await User.findById(req.user._id)
+    req.user.name = name.trim()
+    req.user.phone = phone || ''
+    req.user.address = address || ''
 
-    if (!user) {
-      return res.status(404).json({
-        message: 'Không tìm thấy tài khoản.',
-      })
-    }
-
-    user.name = name.trim()
-    user.phone = phone?.trim() || ''
-    user.address = address?.trim() || ''
-
-    await user.save({ validateBeforeSave: false })
+    await req.user.save({ validateBeforeSave: false })
 
     return res.json({
-      message: 'Cập nhật thông tin cá nhân thành công.',
-      user: publicUser(user),
+      message: 'Cập nhật thông tin thành công.',
+      user: publicUser(req.user),
     })
   } catch (error) {
     return res.status(500).json({
-      message: error.message || 'Lỗi server khi cập nhật thông tin cá nhân.',
+      message: error.message || 'Lỗi server khi cập nhật thông tin user.',
     })
   }
 }
@@ -139,6 +130,7 @@ export const updateMe = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body
+    console.log('FORGOT PASSWORD REQUEST:', email)
 
     if (!email) {
       return res.status(400).json({
@@ -153,6 +145,7 @@ export const forgotPassword = async (req, res) => {
     )
 
     if (!user) {
+      console.log('FORGOT PASSWORD USER NOT FOUND:', normalizedEmail)
       return res.json({
         message: 'Nếu email tồn tại, mã xác thực sẽ được gửi đến email đó.',
       })
@@ -164,10 +157,14 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordOtpExpires = new Date(Date.now() + 10 * 60 * 1000)
 
     await user.save({ validateBeforeSave: false })
+    
+
+    console.log('SENDING RESET OTP EMAIL TO:', user.email)
 
     await sendEmail({
       to: user.email,
       subject: 'Mã xác thực đặt lại mật khẩu',
+      text: `Mon Crochet Shop\n\nMã xác thực đặt lại mật khẩu của bạn là: ${otp}\nMã này có hiệu lực trong 10 phút.\n\nNếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.`,
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6">
           <h2>Mon Crochet Shop</h2>
@@ -183,6 +180,7 @@ export const forgotPassword = async (req, res) => {
       message: 'Nếu email tồn tại, mã xác thực sẽ được gửi đến email đó.',
     })
   } catch (error) {
+    console.error('FORGOT PASSWORD ERROR:', error)
     return res.status(500).json({
       message: error.message || 'Lỗi server khi gửi mã xác thực.',
     })
@@ -214,7 +212,7 @@ export const verifyResetPasswordOtp = async (req, res) => {
     }
 
     return res.json({
-      message: 'Xác thực mã thành công. Vui lòng nhập mật khẩu mới.',
+      message: 'Xác thực mã thành công.',
     })
   } catch (error) {
     return res.status(500).json({

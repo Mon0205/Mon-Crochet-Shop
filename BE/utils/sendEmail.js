@@ -1,27 +1,39 @@
-import nodemailer from 'nodemailer'
+import sgMail from '@sendgrid/mail'
 
-export const sendEmail = async ({ to, subject, html }) => {
-  const requiredMailConfig = ['MAIL_HOST', 'MAIL_PORT', 'MAIL_USER', 'MAIL_PASS', 'MAIL_FROM']
+export const sendEmail = async ({ to, subject, text, html }) => {
+  const requiredMailConfig = ['SENDGRID_API_KEY', 'MAIL_FROM']
   const missingMailConfig = requiredMailConfig.filter((key) => !process.env[key])
 
   if (missingMailConfig.length) {
     throw new Error(`Missing mail configuration: ${missingMailConfig.join(', ')}`)
   }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.MAIL_HOST,
-    port: Number(process.env.MAIL_PORT),
-    secure: Number(process.env.MAIL_PORT) === 465,
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS,
-    },
-  })
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM,
-    to,
-    subject,
-    html,
-  })
+  try {
+    const [response] = await sgMail.send({
+      from: process.env.MAIL_FROM,
+      to,
+      subject,
+      text,
+      html,
+      trackingSettings: {
+        clickTracking: {
+          enable: false,
+          enableText: false,
+        },
+        openTracking: {
+          enable: false,
+        },
+      },
+    })
+    console.log('SENDGRID ACCEPTED:', {
+      statusCode: response.statusCode,
+      messageId: response.headers['x-message-id'],
+    })
+  } catch (error) {
+    const sendGridError = error.response?.body?.errors?.[0]?.message || error.message
+    console.error('SENDGRID ERROR:', error.response?.body || error.message)
+    throw new Error(sendGridError || 'SendGrid email failed')
+  }
 }

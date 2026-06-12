@@ -1,10 +1,12 @@
 import { Link, NavLink } from 'react-router-dom'
-import { LogOut, UserCircle, UserPlus } from 'lucide-react'
+import { LogOut, ReceiptText, ShoppingBag, UserCircle, UserPlus } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useCart } from '../hooks/useCart'
 import logo from '../../img/logo.png'
 
 export default function Header() {
   const { user, logout } = useAuth()
+  const { totalQuantity } = useCart()
 
   return (
     <nav className="navbar navbar-expand-lg sticky-top shop-navbar">
@@ -37,12 +39,14 @@ export default function Header() {
               Sản phẩm
             </NavLink>
             {user && (
-              <NavLink to="/cart" className="nav-link">
+              <NavLink to="/cart" className="nav-link d-inline-flex align-items-center gap-1">
+                <ShoppingBag size={17} />
                 Giỏ hàng
+                {totalQuantity > 0 && <span className="cart-count">{totalQuantity}</span>}
               </NavLink>
             )}
             {user?.role === 'admin' && (
-              <NavLink to="/admin/products" className="nav-link">
+              <NavLink to="/admin" className="nav-link">
                 Admin
               </NavLink>
             )}
@@ -75,7 +79,15 @@ export default function Header() {
                       Thông tin cá nhân
                     </NavLink>
                   </li>
-                  <li><hr className="dropdown-divider" /></li>
+                  <li>
+                    <NavLink to="/orders" className="dropdown-item d-flex align-items-center gap-2">
+                      <ReceiptText size={18} />
+                      Đơn hàng của tôi
+                    </NavLink>
+                  </li>
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
                   <li>
                     <button onClick={logout} className="dropdown-item d-flex align-items-center gap-2 text-danger">
                       <LogOut size={18} />
