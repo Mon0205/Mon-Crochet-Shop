@@ -1209,6 +1209,16 @@ a:hover {
   min-width: 180px;
 }
 
+.order-status-select {
+  border: 0;
+  font-weight: 800;
+}
+
+.order-status-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
 .my-orders-list {
   display: grid;
   gap: 16px;
@@ -1284,12 +1294,24 @@ a:hover {
 }
 
 .order-status-badge {
+  width: fit-content;
   border-radius: 999px;
   padding: 0.45rem 0.75rem;
   background: var(--shop-soft);
   color: var(--shop-primary-dark);
+  font-size: 0.78rem;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #8a5b00;
+}
+
+.status-confirmed {
+  background: #fdebf1;
+  color: #9a3153;
 }
 
 .status-completed {
@@ -1303,8 +1325,8 @@ a:hover {
 }
 
 .status-shipping {
-  background: #e7f3ff;
-  color: #175f9b;
+  background: #eaf6f5;
+  color: #216b68;
 }
 
 .order-modal-backdrop {

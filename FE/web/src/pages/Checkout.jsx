@@ -9,7 +9,7 @@ import { formatPrice } from '../context/CartContext'
 
 export default function Checkout() {
   const { user } = useAuth()
-  const { items, totalPrice, clearCart } = useCart()
+  const { appliedDiscount, clearCart, clearDiscount, items, setAppliedDiscount, totalPrice } = useCart()
   const navigate = useNavigate()
   const [form, setForm] = useState({
     name: user?.name || '',
@@ -17,7 +17,6 @@ export default function Checkout() {
     address: user?.address || '',
     note: '',
   })
-  const [appliedDiscount, setAppliedDiscount] = useState(null)
   const [discountError, setDiscountError] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -42,7 +41,7 @@ export default function Checkout() {
   }
 
   const removeVoucher = () => {
-    setAppliedDiscount(null)
+    clearDiscount()
     setDiscountError('')
   }
 

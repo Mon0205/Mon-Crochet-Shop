@@ -97,12 +97,21 @@ const findBucket = (buckets, date) => buckets.find((bucket) => date >= bucket.st
 
 export const getAdminStats = async (req, res) => {
   try {
+    await Order.updateMany(
+      {
+        status: 'completed',
+        paymentStatus: { $ne: 'paid' },
+      },
+      { $set: { paymentStatus: 'paid' } },
+    )
+
     const range = rangeConfigs.includes(req.query.range) ? req.query.range : 'month'
     const buckets = buildBuckets(range)
     const fromDate = buckets[0].start
     const toDate = buckets[buckets.length - 1].end
     const activeOrderQuery = {
       status: { $ne: 'cancelled' },
+      paymentStatus: 'paid',
     }
     const rangedOrderQuery = {
       ...activeOrderQuery,
@@ -152,7 +161,7 @@ export const getAdminStats = async (req, res) => {
 
     const topProducts = Array.from(topProductMap.values())
       .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 6)
+      .slice(0, 5)
 
     return res.json({
       summary: {

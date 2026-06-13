@@ -12,6 +12,7 @@ export default function OrderDetailModal({ order, onClose }) {
 
   const subtotalPrice = order.subtotalPrice || order.totalPrice + (order.discount?.amount || 0)
   const discountAmount = order.discount?.amount || 0
+  const discountName = order.discount?.name || order.discount?.code || ''
 
   return (
     <div className="order-modal-backdrop" role="presentation" onClick={onClose}>
@@ -43,7 +44,7 @@ export default function OrderDetailModal({ order, onClose }) {
               <p className="text-muted-shop mb-0">
                 Thanh toán: {paymentStatusLabels[order.paymentStatus] || order.paymentStatus}
               </p>
-              {order.discount?.code && <p className="text-muted-shop mb-0">Mã giảm giá: {order.discount.code}</p>}
+              {discountName && <p className="text-muted-shop mb-0">Mã giảm giá: {discountName}</p>}
             </div>
           </div>
 

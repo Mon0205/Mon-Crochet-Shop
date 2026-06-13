@@ -13,6 +13,12 @@ const normalizePayload = (body) => ({
   isActive: body.isActive !== false,
 })
 
+const normalizeUpdatePayload = (body) => ({
+  startsAt: body.startsAt ? new Date(body.startsAt) : null,
+  endsAt: body.endsAt ? new Date(body.endsAt) : null,
+  usageLimit: Number(body.usageLimit || 0),
+})
+
 const validatePayload = (payload) => {
   if (!payload.code) return 'Vui long nhap ma giam gia.'
   if (payload.value <= 0) return 'Gia tri giam gia phai lon hon 0.'
@@ -21,6 +27,21 @@ const validatePayload = (payload) => {
     return 'Ngay bat dau khong duoc lon hon ngay ket thuc.'
   }
   return ''
+}
+
+const validateEditableFields = (payload) => {
+  if (payload.usageLimit < 0) return 'So luot dung khong duoc am.'
+  if (payload.startsAt && payload.endsAt && payload.startsAt > payload.endsAt) {
+    return 'Ngay bat dau khong duoc lon hon ngay ket thuc.'
+  }
+  return ''
+}
+
+const syncDiscountStatus = (discount) => {
+  const now = new Date()
+  const isOutOfUses = discount.usageLimit > 0 && discount.usedCount >= discount.usageLimit
+  const isExpired = discount.endsAt && discount.endsAt < now
+  discount.isActive = !isOutOfUses && !isExpired
 }
 
 export const getAdminDiscounts = async (req, res) => {
@@ -56,6 +77,7 @@ const getDiscountAvailability = (discount, subtotal) => {
   return {
     _id: discount._id,
     code: discount.code,
+    name: discount.code,
     type: discount.type,
     value: discount.value,
     minOrderAmount: discount.minOrderAmount,
@@ -109,34 +131,22 @@ export const createDiscount = async (req, res) => {
 
 export const updateDiscount = async (req, res) => {
   try {
-    const payload = normalizePayload(req.body)
-    const validationError = validatePayload(payload)
+    const payload = normalizeUpdatePayload(req.body)
+    const validationError = validateEditableFields(payload)
     if (validationError) return res.status(400).json({ message: validationError })
 
-    const discount = await Discount.findByIdAndUpdate(req.params.id, payload, {
-      new: true,
-      runValidators: true,
-    })
-
+    const discount = await Discount.findById(req.params.id)
     if (!discount) return res.status(404).json({ message: 'Khong tim thay ma giam gia.' })
 
+    discount.startsAt = payload.startsAt
+    discount.endsAt = payload.endsAt
+    discount.usageLimit = payload.usageLimit
+    syncDiscountStatus(discount)
+
+    await discount.save()
     return res.json({ message: 'Cap nhat ma giam gia thanh cong.', discount })
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'Ma giam gia da ton tai.' })
-    }
     return res.status(500).json({ message: error.message || 'Khong cap nhat duoc ma giam gia.' })
-  }
-}
-
-export const deleteDiscount = async (req, res) => {
-  try {
-    const discount = await Discount.findByIdAndDelete(req.params.id)
-    if (!discount) return res.status(404).json({ message: 'Khong tim thay ma giam gia.' })
-
-    return res.json({ message: 'Da xoa ma giam gia.' })
-  } catch (error) {
-    return res.status(500).json({ message: error.message || 'Khong xoa duoc ma giam gia.' })
   }
 }
 
@@ -149,6 +159,7 @@ export const validateDiscount = async (req, res) => {
       discount: {
         _id: discount._id,
         code: discount.code,
+        name: discount.code,
         type: discount.type,
         value: discount.value,
       },

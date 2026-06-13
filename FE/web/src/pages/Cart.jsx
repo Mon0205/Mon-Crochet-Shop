@@ -10,9 +10,8 @@ import { squareThumbImage } from '../utils/imageUrl'
 const getCartItemKey = (item) => `${item._id}-${item.variantColor || 'default'}`
 
 export default function Cart() {
-  const { items, totalPrice, changeQuantity, removeFromCart } = useCart()
+  const { appliedDiscount, clearDiscount, items, totalPrice, changeQuantity, removeFromCart, setAppliedDiscount } = useCart()
   const navigate = useNavigate()
-  const [appliedDiscount, setAppliedDiscount] = useState(null)
   const [discountError, setDiscountError] = useState('')
 
   const discountAmount = appliedDiscount?.discountAmount || 0
@@ -30,7 +29,7 @@ export default function Cart() {
   }
 
   const removeVoucher = () => {
-    setAppliedDiscount(null)
+    clearDiscount()
     setDiscountError('')
   }
 

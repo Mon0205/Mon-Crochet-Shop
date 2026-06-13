@@ -36,7 +36,7 @@ export default function Login() {
               <div className="row g-4 align-items-stretch">
                 <div className="col-lg-5">
                   <div className="auth-aside d-flex flex-column justify-content-end">
-                    <span className="eyebrow bg-white text-dark mb-3">Len Xinh Shop</span>
+                    <span className="eyebrow bg-white text-dark mb-3">Mon Crochet Shop</span>
                     <h1 className="h2 fw-bold mb-3">Chào mừng bạn quay lại</h1>
                     <p className="mb-0">Đăng nhập để xem giỏ hàng, theo dõi đơn hàng và mua nguyên liệu nhanh hơn.</p>
                   </div>

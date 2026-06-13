@@ -1,7 +1,64 @@
 import Order from '../models/Order.js'
+import Discount from '../models/Discount.js'
 import Product from '../models/Product.js'
 import { getImageUrl } from '../utils/cloudinaryImages.js'
 import { getApplicableDiscount } from '../utils/discountUtils.js'
+
+const syncCompletedOrdersPayment = (filter = {}) =>
+  Order.updateMany(
+    {
+      ...filter,
+      status: 'completed',
+      paymentStatus: { $ne: 'paid' },
+    },
+    { $set: { paymentStatus: 'paid' } },
+  )
+
+const restoreOrderInventory = async (order) => {
+  const productUpdates = []
+
+  for (const item of order.items) {
+    const product = await Product.findById(item.product)
+    if (!product) continue
+
+    product.quantity += item.quantity
+
+    if (product.hasVariants && item.variantColor) {
+      const variant = product.variants.find((candidate) => candidate.color === item.variantColor)
+      if (variant) variant.quantity += item.quantity
+    }
+
+    productUpdates.push(product.save())
+  }
+
+  await Promise.all(productUpdates)
+  order.inventoryRestored = true
+}
+
+const restoreDiscountUsage = async (order) => {
+  if (order.discountUsageRestored) return
+
+  if (!order.discount?.code) {
+    order.discountUsageRestored = true
+    return
+  }
+
+  const discount = await Discount.findOne({ code: order.discount.code })
+  if (!discount) {
+    order.discountUsageRestored = true
+    return
+  }
+
+  discount.usedCount = Math.max(0, discount.usedCount - 1)
+
+  const now = new Date()
+  const isExpired = discount.endsAt && discount.endsAt < now
+  const isOutOfUses = discount.usageLimit > 0 && discount.usedCount >= discount.usageLimit
+  discount.isActive = !isExpired && !isOutOfUses
+
+  await discount.save()
+  order.discountUsageRestored = true
+}
 
 export const createOrder = async (req, res) => {
   try {
@@ -74,6 +131,7 @@ export const createOrder = async (req, res) => {
       discount: appliedDiscount
         ? {
             code: appliedDiscount.code,
+            name: appliedDiscount.code,
             amount: discountAmount,
             type: appliedDiscount.type,
             value: appliedDiscount.value,
@@ -98,6 +156,7 @@ export const createOrder = async (req, res) => {
 
 export const getMyOrders = async (req, res) => {
   try {
+    await syncCompletedOrdersPayment({ user: req.user._id })
     const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 })
     return res.json({ orders })
   } catch (error) {
@@ -107,6 +166,7 @@ export const getMyOrders = async (req, res) => {
 
 export const getAdminOrders = async (req, res) => {
   try {
+    await syncCompletedOrdersPayment()
     const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 })
     return res.json({ orders })
   } catch (error) {
@@ -116,24 +176,31 @@ export const getAdminOrders = async (req, res) => {
 
 export const updateOrderStatus = async (req, res) => {
   try {
-    const updateData = { status: req.body.status }
-
-    if (req.body.status === 'completed') {
-      updateData.paymentStatus = 'paid'
-    }
-
-    if (req.body.status === 'cancelled') {
-      updateData.paymentStatus = 'unpaid'
-    }
-
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true },
-    )
+    const nextStatus = req.body.status
+    const order = await Order.findById(req.params.id)
 
     if (!order) return res.status(404).json({ message: 'Khong tim thay don hang.' })
 
+    if (['cancelled', 'completed'].includes(order.status)) {
+      return res.status(400).json({ message: 'Don hang da o trang thai cuoi, khong the cap nhat tiep.' })
+    }
+
+    if (nextStatus === 'cancelled' && order.status !== 'cancelled') {
+      if (!order.inventoryRestored) await restoreOrderInventory(order)
+      if (!order.discountUsageRestored) await restoreDiscountUsage(order)
+    }
+
+    order.status = nextStatus
+
+    if (nextStatus === 'completed') {
+      order.paymentStatus = 'paid'
+    }
+
+    if (nextStatus === 'cancelled') {
+      order.paymentStatus = 'unpaid'
+    }
+
+    await order.save()
     return res.json({ message: 'Cap nhat don hang thanh cong.', order })
   } catch (error) {
     return res.status(500).json({ message: error.message || 'Loi server khi cap nhat don hang.' })

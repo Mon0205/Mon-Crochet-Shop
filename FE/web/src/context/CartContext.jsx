@@ -16,6 +16,7 @@ export const formatPrice = (price) => `${new Intl.NumberFormat('vi-VN').format(p
 export function CartProvider({ children }) {
   const { user } = useAuth()
   const [items, setItems] = useState([])
+  const [appliedDiscount, setAppliedDiscount] = useState(null)
   const [cartLoading, setCartLoading] = useState(false)
   const hydratedUserRef = useRef('')
 
@@ -37,6 +38,7 @@ export function CartProvider({ children }) {
     (updater) => {
       setItems((current) => {
         const next = typeof updater === 'function' ? updater(current) : updater
+        setAppliedDiscount(null)
         persistCart(next)
         return next
       })
@@ -48,6 +50,7 @@ export function CartProvider({ children }) {
     if (!user) {
       hydratedUserRef.current = ''
       setItems([])
+      setAppliedDiscount(null)
       setCartLoading(false)
       return
     }
@@ -126,6 +129,7 @@ export function CartProvider({ children }) {
 
   const clearCart = useCallback(async () => {
     setItems([])
+    setAppliedDiscount(null)
 
     if (!user) return
 
@@ -139,9 +143,34 @@ export function CartProvider({ children }) {
   const totalQuantity = new Set(items.map((item) => `${item._id}-${item.variantColor || 'default'}`)).size
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
+  const clearDiscount = useCallback(() => setAppliedDiscount(null), [])
+
   const value = useMemo(
-    () => ({ items, cartLoading, totalQuantity, totalPrice, addToCart, changeQuantity, removeFromCart, clearCart }),
-    [items, cartLoading, totalQuantity, totalPrice, addToCart, changeQuantity, removeFromCart, clearCart],
+    () => ({
+      items,
+      appliedDiscount,
+      cartLoading,
+      totalQuantity,
+      totalPrice,
+      addToCart,
+      changeQuantity,
+      clearCart,
+      clearDiscount,
+      removeFromCart,
+      setAppliedDiscount,
+    }),
+    [
+      items,
+      appliedDiscount,
+      cartLoading,
+      totalQuantity,
+      totalPrice,
+      addToCart,
+      changeQuantity,
+      clearCart,
+      clearDiscount,
+      removeFromCart,
+    ],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

@@ -67,6 +67,14 @@ const orderSchema = new mongoose.Schema(
       enum: ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'],
       default: 'pending',
     },
+    inventoryRestored: {
+      type: Boolean,
+      default: false,
+    },
+    discountUsageRestored: {
+      type: Boolean,
+      default: false,
+    },
     subtotalPrice: {
       type: Number,
       default: 0,
@@ -74,6 +82,7 @@ const orderSchema = new mongoose.Schema(
     },
     discount: {
       code: { type: String, default: '', trim: true },
+      name: { type: String, default: '', trim: true },
       amount: { type: Number, default: 0, min: 0 },
       type: { type: String, default: '', trim: true },
       value: { type: Number, default: 0, min: 0 },

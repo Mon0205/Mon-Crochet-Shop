@@ -117,6 +117,7 @@ export default function Admin() {
         order.user?.email,
         order.status,
         order.paymentStatus,
+        order.discount?.name,
         order.discount?.code,
         order.totalPrice,
         ...(order.items || []).flatMap((item) => [item.name, item.variantColor, item.quantity, item.price]),
@@ -426,18 +427,6 @@ export default function Admin() {
     }
   }
 
-  const deleteDiscount = async (id) => {
-    if (!window.confirm('Xóa mã giảm giá này?')) return
-
-    try {
-      await discountApi.deleteDiscount(id)
-      setMessage('Đã xóa mã giảm giá.')
-      await loadData()
-    } catch (err) {
-      setError(err.message || 'Xóa mã giảm giá thất bại.')
-    }
-  }
-
   const updateUserRole = async (id, role) => {
     try {
       const res = await adminApi.updateUserRole(id, role)
@@ -544,7 +533,6 @@ export default function Admin() {
             discounts={discounts}
             searchValue={discountSearch}
             onCreate={createDiscount}
-            onDelete={deleteDiscount}
             onSearchChange={setDiscountSearch}
             onUpdate={updateDiscount}
           />

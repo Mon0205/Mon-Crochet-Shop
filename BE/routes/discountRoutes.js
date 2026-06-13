@@ -1,7 +1,6 @@
 import express from 'express'
 import {
   createDiscount,
-  deleteDiscount,
   getAvailableDiscounts,
   getAdminDiscounts,
   updateDiscount,
@@ -16,6 +15,5 @@ router.get('/available', protect, getAvailableDiscounts)
 router.get('/admin', protect, adminOnly, getAdminDiscounts)
 router.post('/', protect, adminOnly, createDiscount)
 router.put('/:id', protect, adminOnly, updateDiscount)
-router.delete('/:id', protect, adminOnly, deleteDiscount)
 
 export default router

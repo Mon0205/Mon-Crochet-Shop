@@ -6,5 +6,4 @@ export const discountApi = {
   getAdminDiscounts: () => axiosClient.get('/discounts/admin'),
   createDiscount: (data) => axiosClient.post('/discounts', data),
   updateDiscount: (id, data) => axiosClient.put(`/discounts/${id}`, data),
-  deleteDiscount: (id) => axiosClient.delete(`/discounts/${id}`),
 }
