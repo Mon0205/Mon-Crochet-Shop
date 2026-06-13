@@ -5,15 +5,6 @@ import { getImageUrl } from '../utils/productImages'
 
 export const CartContext = createContext(null)
 
-const getStoredCart = () => {
-  const raw = localStorage.getItem('cart')
-  return raw ? JSON.parse(raw) : []
-}
-
-const saveLocalCart = (items) => {
-  localStorage.setItem('cart', JSON.stringify(items))
-}
-
 const toCartPayload = (items) =>
   items.map((item) => ({ product: item._id, quantity: item.quantity, variantColor: item.variantColor }))
 
@@ -24,18 +15,17 @@ export const formatPrice = (price) => `${new Intl.NumberFormat('vi-VN').format(p
 
 export function CartProvider({ children }) {
   const { user } = useAuth()
-  const [items, setItems] = useState(getStoredCart)
+  const [items, setItems] = useState([])
   const [cartLoading, setCartLoading] = useState(false)
   const hydratedUserRef = useRef('')
 
   const persistCart = useCallback(
     async (nextItems) => {
-      saveLocalCart(nextItems)
-
       if (!user) return
 
       try {
-        await cartApi.saveCart(toCartPayload(nextItems))
+        const res = await cartApi.saveCart(toCartPayload(nextItems))
+        setItems(res.data.items || [])
       } catch (error) {
         console.error('SAVE CART ERROR:', error.message)
       }
@@ -57,6 +47,8 @@ export function CartProvider({ children }) {
   useEffect(() => {
     if (!user) {
       hydratedUserRef.current = ''
+      setItems([])
+      setCartLoading(false)
       return
     }
 
@@ -66,27 +58,18 @@ export function CartProvider({ children }) {
 
     cartApi
       .getCart()
-      .then(async (res) => {
-        const serverItems = res.data.items || []
-        const localItems = getStoredCart()
-        const hasLocalItems = localItems.length > 0
-
-        if (serverItems.length === 0 && hasLocalItems) {
-          await cartApi.saveCart(toCartPayload(localItems))
-          setItems(localItems)
-          saveLocalCart(localItems)
-          return
-        }
-
-        setItems(serverItems)
-        saveLocalCart(serverItems)
+      .then((res) => setItems(res.data.items || []))
+      .catch((error) => {
+        console.error('LOAD CART ERROR:', error.message)
+        setItems([])
       })
-      .catch((error) => console.error('LOAD CART ERROR:', error.message))
       .finally(() => setCartLoading(false))
   }, [user])
 
   const addToCart = useCallback(
     (product, quantity = 1, selectedVariant = null) => {
+      if (!user) return
+
       updateItems((current) => {
         const variant = selectedVariant || product.variants?.[0]
         const variantColor = variant?.color || product.color || ''
@@ -116,7 +99,7 @@ export function CartProvider({ children }) {
         ]
       })
     },
-    [updateItems],
+    [updateItems, user],
   )
 
   const changeQuantity = useCallback(
@@ -143,7 +126,6 @@ export function CartProvider({ children }) {
 
   const clearCart = useCallback(async () => {
     setItems([])
-    saveLocalCart([])
 
     if (!user) return
 
