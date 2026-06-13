@@ -15,7 +15,7 @@ const socialLinks = [
   {
     label: 'TikTok',
     icon: '♪',
-    href: 'https://www.tiktok.com/@Mon0205',
+    href: 'https://www.tiktok.com/@monne0205',
   },
 ]
 
