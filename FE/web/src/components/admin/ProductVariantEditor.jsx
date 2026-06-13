@@ -23,11 +23,11 @@ export default function ProductVariantEditor({
               type="button"
               onClick={() => onSelectVariant(index)}
             >
-              {variant.color || `Màu ${index + 1}`}
+              {variant.color || `Phân loại ${index + 1}`}
             </button>
           ))}
           <button type="button" onClick={onAddVariant}>
-            + Màu
+            + Phân loại
           </button>
         </div>
       </div>
@@ -35,7 +35,7 @@ export default function ProductVariantEditor({
       <div className="col-md-7">
         <input
           className="form-control"
-          placeholder="Tên/mã màu"
+          placeholder="Tên/mã phân loại"
           value={activeVariant.color}
           onChange={(event) => onUpdateVariant(activeVariantIndex, { color: event.target.value })}
           required
@@ -45,7 +45,7 @@ export default function ProductVariantEditor({
         <input
           className="form-control"
           type="number"
-          placeholder="Tồn kho màu này"
+          placeholder="Tồn kho phân loại này"
           value={activeVariant.quantity}
           onChange={(event) => onUpdateVariant(activeVariantIndex, { quantity: event.target.value })}
           required
@@ -55,7 +55,7 @@ export default function ProductVariantEditor({
       <ProductImageUploader
         images={activeVariant.images}
         inputId="variantImages"
-        label="Chọn ảnh cho màu đang chọn"
+        label="Chọn ảnh cho phân loại đang chọn"
         uploading={uploading}
         onRemoveImage={onRemoveImage}
         onUploadImages={onUploadImages}
@@ -63,7 +63,7 @@ export default function ProductVariantEditor({
 
       <div className="col-12 d-flex justify-content-between align-items-center gap-2">
         <button className="btn btn-shop-outline" type="button" onClick={() => onRemoveVariant(activeVariantIndex)}>
-          Xóa màu đang chọn
+          Xóa phân loại đang chọn
         </button>
       </div>
     </>

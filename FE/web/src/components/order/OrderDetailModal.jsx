@@ -2,8 +2,16 @@ import { X } from 'lucide-react'
 import { formatPrice } from '../../context/CartContext'
 import { formatOrderDate, getOrderCode, orderStatusLabels } from '../../utils/orderUtils'
 
+const paymentStatusLabels = {
+  unpaid: 'Chưa thanh toán',
+  paid: 'Đã thanh toán',
+}
+
 export default function OrderDetailModal({ order, onClose }) {
   if (!order) return null
+
+  const subtotalPrice = order.subtotalPrice || order.totalPrice + (order.discount?.amount || 0)
+  const discountAmount = order.discount?.amount || 0
 
   return (
     <div className="order-modal-backdrop" role="presentation" onClick={onClose}>
@@ -30,8 +38,12 @@ export default function OrderDetailModal({ order, onClose }) {
             </div>
             <div>
               <h3 className="h6 fw-bold">Thanh toán</h3>
-              <p className="mb-1">COD</p>
-              <p className="text-muted-shop mb-0">Trạng thái: {orderStatusLabels[order.status] || order.status}</p>
+              <p className="mb-1">{order.paymentMethod || 'COD'}</p>
+              <p className="text-muted-shop mb-0">Đơn hàng: {orderStatusLabels[order.status] || order.status}</p>
+              <p className="text-muted-shop mb-0">
+                Thanh toán: {paymentStatusLabels[order.paymentStatus] || order.paymentStatus}
+              </p>
+              {order.discount?.code && <p className="text-muted-shop mb-0">Mã giảm giá: {order.discount.code}</p>}
             </div>
           </div>
 
@@ -41,7 +53,7 @@ export default function OrderDetailModal({ order, onClose }) {
                 <img src={item.image || 'https://placehold.co/120x120?text=Mon'} alt={item.name} />
                 <div>
                   <h3 className="h6 fw-bold mb-1">{item.name}</h3>
-                  {item.variantColor && <p className="text-muted-shop mb-1">Màu: {item.variantColor}</p>}
+                  {item.variantColor && <p className="text-muted-shop mb-1">Phân loại: {item.variantColor}</p>}
                   <p className="text-muted-shop mb-0">
                     {formatPrice(item.price)} x {item.quantity}
                   </p>
@@ -52,9 +64,21 @@ export default function OrderDetailModal({ order, onClose }) {
           </div>
         </div>
 
-        <footer className="order-modal-footer">
-          <span>Tổng đơn</span>
-          <strong className="price">{formatPrice(order.totalPrice)}</strong>
+        <footer className="order-modal-footer order-modal-total">
+          <div>
+            <span>Tạm tính</span>
+            <strong>{formatPrice(subtotalPrice)}</strong>
+          </div>
+          {discountAmount > 0 && (
+            <div>
+              <span>Giảm giá</span>
+              <strong>-{formatPrice(discountAmount)}</strong>
+            </div>
+          )}
+          <div>
+            <span>Tổng đơn</span>
+            <strong className="price">{formatPrice(order.totalPrice)}</strong>
+          </div>
         </footer>
       </section>
     </div>

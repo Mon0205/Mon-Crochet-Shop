@@ -30,9 +30,7 @@ export default function Products() {
       <div className="container">
         <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
           <div>
-            <span className="eyebrow mb-3">Cửa hàng</span>
             <h1 className="display-6 fw-bold mb-2">Sản phẩm len móc</h1>
-            <p className="text-muted-shop mb-0">Chọn nguyên liệu, phụ kiện và combo phù hợp rồi đặt COD.</p>
           </div>
           <div className="product-toolbar">
             <input

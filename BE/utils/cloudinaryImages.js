@@ -24,9 +24,17 @@ export const normalizeImages = (images) => {
 export const getImageUrl = (image) => (typeof image === 'string' ? image : image?.url || '')
 
 export const destroyProductImages = async (images = []) => {
-  const publicIds = images.map(normalizeImage).map((image) => image?.publicId).filter(Boolean)
+  const publicIds = [
+    ...new Set(images.map(normalizeImage).map((image) => image?.publicId).filter(Boolean)),
+  ]
 
   if (publicIds.length === 0) return
 
-  await Promise.allSettled(publicIds.map((publicId) => cloudinary.uploader.destroy(publicId)))
+  const results = await Promise.allSettled(publicIds.map((publicId) => cloudinary.uploader.destroy(publicId)))
+
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      console.error('CLOUDINARY DELETE ERROR:', publicIds[index], result.reason)
+    }
+  })
 }

@@ -138,6 +138,7 @@ export const deleteProduct = async (req, res) => {
 
     return res.json({ message: 'Xoa san pham thanh cong.' })
   } catch (error) {
+    console.error('DELETE PRODUCT ERROR:', error)
     return res.status(500).json({ message: error.message || 'Loi server khi xoa san pham.' })
   }
 }

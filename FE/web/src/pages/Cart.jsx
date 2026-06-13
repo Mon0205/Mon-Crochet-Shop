@@ -1,5 +1,8 @@
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
+import { discountApi } from '../api/discountApi'
+import VoucherSelector, { discountStorageKey } from '../components/discount/VoucherSelector'
 import { useCart } from '../hooks/useCart'
 import { formatPrice } from '../context/CartContext'
 import { squareThumbImage } from '../utils/imageUrl'
@@ -9,6 +12,37 @@ const getCartItemKey = (item) => `${item._id}-${item.variantColor || 'default'}`
 export default function Cart() {
   const { items, totalPrice, changeQuantity, removeFromCart } = useCart()
   const navigate = useNavigate()
+  const [appliedDiscount, setAppliedDiscount] = useState(null)
+  const [discountError, setDiscountError] = useState('')
+
+  const discountAmount = appliedDiscount?.discountAmount || 0
+  const finalTotal = useMemo(() => Math.max(totalPrice - discountAmount, 0), [discountAmount, totalPrice])
+
+  const applyVoucher = async (code) => {
+    setDiscountError('')
+    try {
+      const res = await discountApi.validateDiscount({ code, subtotal: totalPrice })
+      setAppliedDiscount(res.data)
+      localStorage.setItem(discountStorageKey, res.data.discount.code)
+    } catch (err) {
+      setAppliedDiscount(null)
+      localStorage.removeItem(discountStorageKey)
+      setDiscountError(err.message || 'Voucher không hợp lệ.')
+    }
+  }
+
+  const removeVoucher = () => {
+    setAppliedDiscount(null)
+    setDiscountError('')
+    localStorage.removeItem(discountStorageKey)
+  }
+
+  const goToCheckout = () => {
+    if (appliedDiscount?.discount?.code) {
+      localStorage.setItem(discountStorageKey, appliedDiscount.discount.code)
+    }
+    navigate('/checkout')
+  }
 
   if (items.length === 0) {
     return (
@@ -48,10 +82,10 @@ export default function Cart() {
                   <img src={squareThumbImage(item.image, 240) || 'https://placehold.co/240x240?text=Mon+Crochet'} alt={item.name} />
                   <div className="cart-item-main">
                     <h2 className="h6 fw-bold mb-1">{item.name}</h2>
-                    {item.variantColor && <p className="text-muted-shop mb-1">Màu: {item.variantColor}</p>}
+                    {item.variantColor && <p className="text-muted-shop mb-1">Phân loại: {item.variantColor}</p>}
                     <p className="text-muted-shop mb-0">{formatPrice(item.price)}</p>
                   </div>
-                  <div className="quantity-control" aria-label="So luong">
+                  <div className="quantity-control" aria-label="Số lượng">
                     <button type="button" onClick={() => changeQuantity(item._id, item.variantColor, item.quantity - 1)}>
                       <Minus size={16} />
                     </button>
@@ -72,15 +106,34 @@ export default function Cart() {
           <div className="col-lg-4">
             <aside className="summary-panel">
               <h2 className="h5 fw-bold mb-3">Tổng đơn</h2>
+
+              <VoucherSelector
+                appliedDiscount={appliedDiscount}
+                subtotal={totalPrice}
+                onApply={applyVoucher}
+                onRemove={removeVoucher}
+              />
+              {discountError && <p className="discount-error">{discountError}</p>}
+
               <div className="summary-row">
                 <span>Tạm tính</span>
                 <strong>{formatPrice(totalPrice)}</strong>
               </div>
+              {discountAmount > 0 && (
+                <div className="summary-row discount-row-summary">
+                  <span>Giảm giá</span>
+                  <strong>-{formatPrice(discountAmount)}</strong>
+                </div>
+              )}
               <div className="summary-row">
                 <span>Thanh toán</span>
                 <strong>COD</strong>
               </div>
-              <button className="btn btn-shop w-100 mt-3" type="button" onClick={() => navigate('/checkout')}>
+              <div className="summary-total">
+                <span>Tổng cộng</span>
+                <strong>{formatPrice(finalTotal)}</strong>
+              </div>
+              <button className="btn btn-shop w-100 mt-3" type="button" onClick={goToCheckout}>
                 Thanh toán COD
               </button>
             </aside>

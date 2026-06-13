@@ -11,6 +11,11 @@ const orderStatuses = {
   cancelled: 'Đã hủy',
 }
 
+const paymentStatusLabels = {
+  unpaid: 'Chưa thanh toán',
+  paid: 'Đã thanh toán',
+}
+
 export default function OrderList({ orders, onUpdateStatus }) {
   const [selectedOrder, setSelectedOrder] = useState(null)
 
@@ -24,6 +29,10 @@ export default function OrderList({ orders, onUpdateStatus }) {
               <span className="text-muted-shop">{formatOrderDate(order.createdAt)}</span>
               <span className="text-muted-shop">
                 {order.shippingAddress.name} · {getOrderItemsCount(order)} sản phẩm
+                {order.discount?.code ? ` · Mã ${order.discount.code}` : ''}
+              </span>
+              <span className={order.paymentStatus === 'paid' ? 'payment-badge paid' : 'payment-badge'}>
+                {paymentStatusLabels[order.paymentStatus] || order.paymentStatus}
               </span>
             </button>
             <strong>{formatPrice(order.totalPrice)}</strong>

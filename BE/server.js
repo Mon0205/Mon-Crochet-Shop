@@ -9,6 +9,8 @@ import productRoutes from './routes/productRoutes.js'
 import orderRoutes from './routes/orderRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import cartRoutes from './routes/cartRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
+import discountRoutes from './routes/discountRoutes.js'
 import { errorHandler, notFound } from './middlewares/errorMiddleware.js'
 
 connectDB()
@@ -41,6 +43,8 @@ app.use('/api/products', productRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/uploads', uploadRoutes)
 app.use('/api/cart', cartRoutes)
+app.use('/api/admin', adminRoutes)
+app.use('/api/discounts', discountRoutes)
 
 app.use(notFound)
 app.use(errorHandler)

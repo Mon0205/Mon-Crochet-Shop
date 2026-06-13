@@ -1,48 +1,58 @@
-import { Link } from 'react-router-dom'
-import { ArrowRight, PackageCheck, ShieldCheck, Sparkles, Truck } from 'lucide-react'
-import heroImage from '../assets/hero.png'
+import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight, PackageCheck, ShieldCheck, Truck } from 'lucide-react'
+
+const bannerSlides = [
+  {
+    image: '/img/538c1065-497a-49d8-ab4e-960de485639e.jpg',
+    title: 'Banner len handmade 1',
+  },
+  {
+    image: '/img/Gemini_Generated_Image_3v96233v96233v96.png',
+    title: 'Banner len handmade 2',
+  },
+  {
+    image: '/img/watermarked_img_1561878050608508035.png',
+    title: 'Banner len handmade 3',
+  },
+]
 
 export default function Home() {
+  const [activeSlide, setActiveSlide] = useState(0)
+  const currentSlide = bannerSlides[activeSlide]
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % bannerSlides.length)
+    }, 5000)
+
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const goToSlide = (index) => setActiveSlide((index + bannerSlides.length) % bannerSlides.length)
+
   return (
     <>
-      <main className="hero-section">
-        <div className="container">
-          <div className="row align-items-center g-5">
-            <div className="col-lg-6">
-              <span className="eyebrow mb-3">Nguyên liệu móc len handmade</span>
-              <h1 className="hero-title mb-4">
-                Len đẹp, phụ kiện đủ, bắt đầu mẫu móc mới nhanh hơn.
-              </h1>
-              <p className="hero-copy mb-4">
-                Chọn len sợi, kim móc, mắt thú, bông gòn và combo dành cho người mới trong một cửa hàng gọn gàng, dễ mua và rõ thông tin.
-              </p>
-              <div className="d-flex flex-wrap gap-3">
-                <Link to="/products" className="btn btn-shop d-inline-flex align-items-center gap-2">
-                  Xem sản phẩm
-                  <ArrowRight size={18} />
-                </Link>
-                <Link to="/register" className="btn btn-shop-outline">
-                  Tạo tài khoản
-                </Link>
-              </div>
-            </div>
+      <main className="home-banner">
+        <img className="home-banner-image" src={currentSlide.image} alt={currentSlide.title} />
 
-            <div className="col-lg-6">
-              <div className="hero-media">
-                <img src={heroImage} alt="Len và phụ kiện móc handmade" />
-                <div className="hero-panel">
-                  <div className="d-flex align-items-start justify-content-between gap-3">
-                    <div>
-                      <p className="shop-badge mb-2">Combo gợi ý</p>
-                      <h2 className="h4 fw-bold mb-1">Starter Crochet Kit</h2>
-                      <p className="mb-0 text-muted-shop">Len milk cotton, kim 2.5mm, mắt thú và bông gòn.</p>
-                    </div>
-                    <Sparkles size={28} color="#8f2f4f" />
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className="home-banner-controls" aria-label="Điều khiển banner">
+          <button type="button" onClick={() => goToSlide(activeSlide - 1)} aria-label="Slide trước">
+            <ChevronLeft size={22} />
+          </button>
+          <div className="home-banner-dots">
+            {bannerSlides.map((slide, index) => (
+              <button
+                className={index === activeSlide ? 'active' : ''}
+                key={slide.title}
+                type="button"
+                onClick={() => goToSlide(index)}
+                aria-label={`Chọn banner ${index + 1}`}
+              />
+            ))}
           </div>
+          <button type="button" onClick={() => goToSlide(activeSlide + 1)} aria-label="Slide sau">
+            <ChevronRight size={22} />
+          </button>
         </div>
       </main>
 

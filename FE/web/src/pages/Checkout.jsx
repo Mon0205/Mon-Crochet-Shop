@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { discountApi } from '../api/discountApi'
 import { orderApi } from '../api/orderApi'
+import VoucherSelector, { discountStorageKey } from '../components/discount/VoucherSelector'
 import { useAuth } from '../hooks/useAuth'
 import { useCart } from '../hooks/useCart'
 import { formatPrice } from '../context/CartContext'
@@ -15,12 +17,49 @@ export default function Checkout() {
     address: user?.address || '',
     note: '',
   })
+  const [appliedDiscount, setAppliedDiscount] = useState(null)
+  const [discountError, setDiscountError] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const discountAmount = appliedDiscount?.discountAmount || 0
+  const finalTotal = useMemo(() => Math.max(totalPrice - discountAmount, 0), [discountAmount, totalPrice])
+
+  useEffect(() => {
+    const storedCode = localStorage.getItem(discountStorageKey)
+    if (!storedCode || totalPrice <= 0) return
+
+    discountApi
+      .validateDiscount({ code: storedCode, subtotal: totalPrice })
+      .then((res) => setAppliedDiscount(res.data))
+      .catch(() => {
+        localStorage.removeItem(discountStorageKey)
+        setAppliedDiscount(null)
+      })
+  }, [totalPrice])
 
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
+  }
+
+  const applyVoucher = async (code) => {
+    setDiscountError('')
+    try {
+      const res = await discountApi.validateDiscount({ code, subtotal: totalPrice })
+      setAppliedDiscount(res.data)
+      localStorage.setItem(discountStorageKey, res.data.discount.code)
+    } catch (err) {
+      setAppliedDiscount(null)
+      localStorage.removeItem(discountStorageKey)
+      setDiscountError(err.message || 'Voucher không hợp lệ.')
+    }
+  }
+
+  const removeVoucher = () => {
+    setAppliedDiscount(null)
+    setDiscountError('')
+    localStorage.removeItem(discountStorageKey)
   }
 
   const handleSubmit = async (event) => {
@@ -37,7 +76,9 @@ export default function Checkout() {
       await orderApi.createOrder({
         items: items.map((item) => ({ product: item._id, quantity: item.quantity, variantColor: item.variantColor })),
         shippingAddress: form,
+        discountCode: appliedDiscount?.discount?.code || '',
       })
+      localStorage.removeItem(discountStorageKey)
       clearCart()
       navigate('/checkout/success')
     } catch (err) {
@@ -120,9 +161,28 @@ export default function Checkout() {
                   <strong>{formatPrice(item.price * item.quantity)}</strong>
                 </div>
               ))}
+
+              <VoucherSelector
+                appliedDiscount={appliedDiscount}
+                subtotal={totalPrice}
+                onApply={applyVoucher}
+                onRemove={removeVoucher}
+              />
+              {discountError && <p className="discount-error">{discountError}</p>}
+
+              <div className="summary-row">
+                <span>Tạm tính</span>
+                <strong>{formatPrice(totalPrice)}</strong>
+              </div>
+              {discountAmount > 0 && (
+                <div className="summary-row discount-row-summary">
+                  <span>Giảm giá</span>
+                  <strong>-{formatPrice(discountAmount)}</strong>
+                </div>
+              )}
               <div className="summary-total">
                 <span>Tổng cộng</span>
-                <strong>{formatPrice(totalPrice)}</strong>
+                <strong>{formatPrice(finalTotal)}</strong>
               </div>
             </aside>
           </div>

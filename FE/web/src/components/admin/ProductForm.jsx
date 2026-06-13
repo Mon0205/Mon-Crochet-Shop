@@ -11,6 +11,7 @@ export default function ProductForm({
   form,
   loading,
   previewProduct,
+  title,
   uploading,
   onAddVariant,
   onCancelEdit,
@@ -30,7 +31,7 @@ export default function ProductForm({
       <form className="auth-card p-4" onSubmit={onSubmit}>
         <div className="admin-product-editor-grid">
           <div>
-            <h2 className="h5 fw-bold mb-3">{editingId ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}</h2>
+            <h2 className="h5 fw-bold mb-3">{title || (editingId ? 'Sửa sản phẩm' : 'Thêm sản phẩm')}</h2>
             <div className="row g-3">
               <div className="col-12">
                 <input className="form-control" name="name" placeholder="Tên sản phẩm" value={form.name} onChange={onChange} required />
@@ -54,13 +55,13 @@ export default function ProductForm({
               <div className="col-12">
                 <label className="form-check d-flex align-items-center gap-2 fw-semibold">
                   <input className="form-check-input mt-0" type="checkbox" checked={form.hasVariants} onChange={(event) => onToggleVariants(event.target.checked)} />
-                  Sản phẩm có biến thể màu
+                  Sản phẩm có phân loại
                 </label>
               </div>
 
               <ProductImageUploader
                 images={form.images}
-                inputId="productMainImages"
+                inputId={editingId ? `productMainImages-${editingId}` : 'productMainImages-create'}
                 label="Chọn ảnh chung hiển thị sản phẩm"
                 uploading={uploading}
                 onRemoveImage={onRemoveMainImage}
@@ -70,7 +71,7 @@ export default function ProductForm({
               {!form.hasVariants && (
                 <>
                   <div className="col-md-6">
-                    <input className="form-control" name="color" placeholder="Màu" value={form.color} onChange={onChange} />
+                    <input className="form-control" name="color" placeholder="Phân loại" value={form.color} onChange={onChange} />
                   </div>
                   <div className="col-md-6">
                     <input className="form-control" name="quantity" type="number" placeholder="Tồn kho" value={form.quantity} onChange={onChange} required />
@@ -102,7 +103,7 @@ export default function ProductForm({
                 <PackagePlus size={18} />
                 {loading ? 'Đang lưu...' : 'Lưu'}
               </button>
-              {editingId && (
+              {(editingId || title) && (
                 <button className="btn btn-shop-outline" type="button" onClick={onCancelEdit}>
                   Hủy
                 </button>

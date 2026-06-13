@@ -67,6 +67,17 @@ const orderSchema = new mongoose.Schema(
       enum: ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'],
       default: 'pending',
     },
+    subtotalPrice: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    discount: {
+      code: { type: String, default: '', trim: true },
+      amount: { type: Number, default: 0, min: 0 },
+      type: { type: String, default: '', trim: true },
+      value: { type: Number, default: 0, min: 0 },
+    },
     totalPrice: {
       type: Number,
       required: true,

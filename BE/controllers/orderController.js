@@ -1,10 +1,11 @@
 import Order from '../models/Order.js'
 import Product from '../models/Product.js'
 import { getImageUrl } from '../utils/cloudinaryImages.js'
+import { getApplicableDiscount } from '../utils/discountUtils.js'
 
 export const createOrder = async (req, res) => {
   try {
-    const { items, shippingAddress } = req.body
+    const { discountCode, items, shippingAddress } = req.body
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ message: 'Gio hang dang trong.' })
@@ -15,7 +16,8 @@ export const createOrder = async (req, res) => {
     }
 
     const orderItems = []
-    let totalPrice = 0
+    const productUpdates = []
+    let subtotalPrice = 0
 
     for (const item of items) {
       const product = await Product.findById(item.product || item._id)
@@ -35,10 +37,10 @@ export const createOrder = async (req, res) => {
       }
 
       const price = product.discountPrice > 0 ? product.discountPrice : product.price
-      totalPrice += price * quantity
+      subtotalPrice += price * quantity
       product.quantity -= quantity
       if (variant) variant.quantity -= quantity
-      await product.save()
+      productUpdates.push(product)
 
       orderItems.push({
         product: product._id,
@@ -50,13 +52,43 @@ export const createOrder = async (req, res) => {
       })
     }
 
+    let appliedDiscount = null
+    let discountAmount = 0
+
+    if (discountCode) {
+      const discountResult = await getApplicableDiscount(discountCode, subtotalPrice)
+      appliedDiscount = discountResult.discount
+      discountAmount = discountResult.discountAmount
+    }
+
+    const totalPrice = Math.max(subtotalPrice - discountAmount, 0)
+
+    await Promise.all(productUpdates.map((product) => product.save()))
+
     const order = await Order.create({
       user: req.user._id,
       items: orderItems,
       shippingAddress,
       paymentMethod: 'COD',
+      subtotalPrice,
+      discount: appliedDiscount
+        ? {
+            code: appliedDiscount.code,
+            amount: discountAmount,
+            type: appliedDiscount.type,
+            value: appliedDiscount.value,
+          }
+        : undefined,
       totalPrice,
     })
+
+    if (appliedDiscount) {
+      appliedDiscount.usedCount += 1
+      if (appliedDiscount.usageLimit > 0 && appliedDiscount.usedCount >= appliedDiscount.usageLimit) {
+        appliedDiscount.isActive = false
+      }
+      await appliedDiscount.save()
+    }
 
     return res.status(201).json({ message: 'Dat hang COD thanh cong.', order })
   } catch (error) {
@@ -84,9 +116,19 @@ export const getAdminOrders = async (req, res) => {
 
 export const updateOrderStatus = async (req, res) => {
   try {
+    const updateData = { status: req.body.status }
+
+    if (req.body.status === 'completed') {
+      updateData.paymentStatus = 'paid'
+    }
+
+    if (req.body.status === 'cancelled') {
+      updateData.paymentStatus = 'unpaid'
+    }
+
     const order = await Order.findByIdAndUpdate(
       req.params.id,
-      { status: req.body.status },
+      updateData,
       { new: true, runValidators: true },
     )
 
