@@ -1,0 +1,3 @@
+Description: Mon Crochet Shop is a full-stack e-commerce website for selling handmade crochet products. The website was built with ReactJS for the frontend, Node.js/Express for the backend, MongoDB Atlas for database storage, Cloudinary for image management, and SendGrid for email verification. Implemented product management, shopping cart, orders, authentication, and discounts statistics following MVC and RESTful API principles. The project was deployed using Vercel for the frontend and Render for the backend.
+Frontend: ReactJS
+Backend: NodeJS, ExpressJS, MongoDB, Cloudinary (image storage), SendGrid (email service)
