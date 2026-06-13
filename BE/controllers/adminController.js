@@ -3,45 +3,55 @@ import Product from '../models/Product.js'
 import User from '../models/User.js'
 
 const rangeConfigs = ['day', 'week', 'month', 'year']
+const VIETNAM_OFFSET_MS = 7 * 60 * 60 * 1000
 
-const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate())
+const nowInVietnam = () => new Date(Date.now() + VIETNAM_OFFSET_MS)
+const fromVietnamWallTime = (date) => new Date(date.getTime() - VIETNAM_OFFSET_MS)
+
+const startOfDay = (date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
 
 const addHours = (date, amount) => {
   const next = new Date(date)
-  next.setHours(next.getHours() + amount)
+  next.setUTCHours(next.getUTCHours() + amount)
   return next
 }
 
 const addDays = (date, amount) => {
   const next = new Date(date)
-  next.setDate(next.getDate() + amount)
+  next.setUTCDate(next.getUTCDate() + amount)
   return next
 }
 
 const addMonths = (date, amount) => {
   const next = new Date(date)
-  next.setMonth(next.getMonth() + amount)
+  next.setUTCMonth(next.getUTCMonth() + amount)
   return next
 }
 
 const startOfWeek = (date) => {
   const current = startOfDay(date)
-  const day = current.getDay() || 7
+  const day = current.getUTCDay() || 7
   return addDays(current, 1 - day)
 }
 
-const startOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1)
-const startOfYear = (date) => new Date(date.getFullYear(), 0, 1)
+const startOfMonth = (date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1))
+const startOfYear = (date) => new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
 
-const formatHourLabel = (date) => `${String(date.getHours()).padStart(2, '0')}h`
-const formatDateLabel = (date) => `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`
-const formatMonthLabel = (date) => `${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`
+const formatHourLabel = (date) => `${String(date.getUTCHours()).padStart(2, '0')}h`
+const formatDateLabel = (date) => `${String(date.getUTCDate()).padStart(2, '0')}/${String(date.getUTCMonth() + 1).padStart(2, '0')}`
+const formatMonthLabel = (date) => `${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`
 const weekDayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
-const createBucket = (start, end, label) => ({ start, end, label, value: 0, orders: 0 })
+const createBucket = (start, end, label) => ({
+  start: fromVietnamWallTime(start),
+  end: fromVietnamWallTime(end),
+  label,
+  value: 0,
+  orders: 0,
+})
 
 const buildBuckets = (range) => {
-  const now = new Date()
+  const now = nowInVietnam()
   const buckets = []
 
   if (range === 'day') {
@@ -57,7 +67,7 @@ const buildBuckets = (range) => {
     const periodStart = startOfWeek(now)
     for (let day = 0; day < 7; day += 1) {
       const start = addDays(periodStart, day)
-      buckets.push(createBucket(start, addDays(start, 1), `${weekDayLabels[start.getDay()]} ${formatDateLabel(start)}`))
+      buckets.push(createBucket(start, addDays(start, 1), `${weekDayLabels[start.getUTCDay()]} ${formatDateLabel(start)}`))
     }
     return buckets
   }
