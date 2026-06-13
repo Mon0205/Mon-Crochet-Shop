@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Mon Crochet Shop
 
 Mon Crochet Shop là website bán sản phẩm handmade/crochet, gồm giao diện người dùng và hệ thống quản trị cho shop.
