@@ -10,7 +10,7 @@ const rangeOptions = [
 
 const summaryCards = [
   { key: 'revenue', label: 'Doanh thu', icon: TrendingUp, format: formatPrice },
-  { key: 'ordersCount', label: 'Đơn hàng', icon: FileText },
+  { key: 'ordersCount', label: 'Đơn hoàn thành', icon: FileText },
   { key: 'productsCount', label: 'Sản phẩm', icon: Boxes },
   { key: 'usersCount', label: 'Người dùng', icon: Users },
   { key: 'pendingOrdersCount', label: 'Đơn chờ xử lý', icon: Clock3 },
@@ -25,15 +25,8 @@ export default function DashboardOverview({ stats, range, onRangeChange, loading
 
   return (
     <div className="admin-dashboard">
-      <div className="admin-section-header">
-        
-        <select className="form-select admin-range-select" value={range} onChange={(event) => onRangeChange(event.target.value)}>
-          {rangeOptions.map((option) => (
-            <option value={option.value} key={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+      <div className="admin-page-heading">
+        <h2>Tổng quan cửa hàng</h2>
       </div>
 
       <div className="admin-metric-grid">
@@ -59,14 +52,22 @@ export default function DashboardOverview({ stats, range, onRangeChange, loading
           <div className="admin-panel-title">
             <div>
               <h3>Doanh thu</h3>
-              <p>Theo khoảng thời gian đã chọn</p>
             </div>
-            <BarChart3 size={20} />
+            <div className="admin-panel-actions">
+              <select className="form-select admin-range-select" value={range} onChange={(event) => onRangeChange(event.target.value)}>
+                {rangeOptions.map((option) => (
+                  <option value={option.value} key={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <BarChart3 size={20} />
+            </div>
           </div>
           <div className="revenue-chart">
             {revenueSeries.map((item) => (
               <div className="revenue-chart-item" key={item.label}>
-                <div className="revenue-bar-wrap">
+                <div className="revenue-bar-wrap" title={formatPrice(item.value)}>
                   <div className="revenue-bar" style={{ height: `${Math.max((item.value / maxRevenue) * 100, item.value > 0 ? 8 : 0)}%` }} />
                 </div>
                 <span>{item.label}</span>
@@ -79,7 +80,6 @@ export default function DashboardOverview({ stats, range, onRangeChange, loading
           <div className="admin-panel-title">
             <div>
               <h3>Sản phẩm bán chạy</h3>
-              <p>Xếp theo số lượng đã bán trong khoảng này</p>
             </div>
           </div>
           <div className="top-products">

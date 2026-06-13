@@ -6,7 +6,6 @@ export default function UserList({ searchValue, users, onSearchChange, onUpdateR
     <div className="admin-panel">
       <div className="admin-section-header compact">
         <div>
-          <span className="eyebrow">Users</span>
           <h2>Quản lý người dùng</h2>
         </div>
       </div>

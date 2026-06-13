@@ -109,12 +109,12 @@ export const getAdminStats = async (req, res) => {
     const buckets = buildBuckets(range)
     const fromDate = buckets[0].start
     const toDate = buckets[buckets.length - 1].end
-    const activeOrderQuery = {
-      status: { $ne: 'cancelled' },
+    const completedOrderQuery = {
+      status: 'completed',
       paymentStatus: 'paid',
     }
     const rangedOrderQuery = {
-      ...activeOrderQuery,
+      ...completedOrderQuery,
       createdAt: { $gte: fromDate, $lt: toDate },
     }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, PackageCheck, ShieldCheck, Truck } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { PackageCheck, ShieldCheck, Truck } from 'lucide-react'
 
 const bannerSlides = [
   {
@@ -36,9 +37,9 @@ export default function Home() {
         <img className="home-banner-image" src={currentSlide.image} alt={currentSlide.title} />
 
         <div className="home-banner-controls" aria-label="Điều khiển banner">
-          <button type="button" onClick={() => goToSlide(activeSlide - 1)} aria-label="Slide trước">
-            <ChevronLeft size={22} />
-          </button>
+          <Link className="home-banner-cta" to="/products">
+            Khám phá ngay
+          </Link>
           <div className="home-banner-dots">
             {bannerSlides.map((slide, index) => (
               <button
@@ -50,9 +51,6 @@ export default function Home() {
               />
             ))}
           </div>
-          <button type="button" onClick={() => goToSlide(activeSlide + 1)} aria-label="Slide sau">
-            <ChevronRight size={22} />
-          </button>
         </div>
       </main>
 

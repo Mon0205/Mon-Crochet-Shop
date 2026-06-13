@@ -111,7 +111,6 @@ export default function DiscountManager({ discounts, searchValue, onCreate, onSe
     <section className="admin-panel">
       <div className="admin-section-header compact">
         <div>
-          <span className="eyebrow">Discounts</span>
           <h2>Quản lý mã giảm giá</h2>
         </div>
         <button className="btn btn-shop d-inline-flex align-items-center gap-2" type="button" onClick={startCreate}>

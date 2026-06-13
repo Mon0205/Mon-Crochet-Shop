@@ -34,14 +34,6 @@ const getEmptyForm = () => ({
   variants: [createVariant()],
 })
 
-const sectionTitles = {
-  dashboard: 'Tổng quan cửa hàng',
-  products: 'Quản lý sản phẩm',
-  orders: 'Quản lý hóa đơn',
-  discounts: 'Quản lý giảm giá',
-  users: 'Quản lý người dùng',
-}
-
 const normalizeSearch = (value = '') =>
   String(value)
     .normalize('NFD')
@@ -467,12 +459,6 @@ export default function Admin() {
       <AdminSidebar activeSection={section} onChange={changeSection} />
 
       <div className="admin-main">
-        <div className="admin-topbar">
-          <div>
-            <h1>{sectionTitles[section]}</h1>
-          </div>
-        </div>
-
         {message && <div className="alert alert-success">{message}</div>}
         {error && <div className="alert alert-danger">{error}</div>}
 
@@ -487,8 +473,7 @@ export default function Admin() {
             <section className="admin-panel">
               <div className="admin-section-header compact">
                 <div>
-                  <span className="eyebrow">Products</span>
-                  <h2>Danh sách sản phẩm</h2>
+                  <h2>Quản lý sản phẩm</h2>
                 </div>
                 <button className="btn btn-shop d-inline-flex align-items-center gap-2" type="button" onClick={openCreateForm}>
                   <Plus size={18} />
@@ -516,7 +501,6 @@ export default function Admin() {
           <section className="admin-panel">
             <div className="admin-section-header compact">
               <div>
-                <span className="eyebrow">Orders</span>
                 <h2>Quản lý hóa đơn</h2>
               </div>
             </div>
