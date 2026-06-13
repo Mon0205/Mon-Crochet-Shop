@@ -88,7 +88,7 @@ const Register = () => {
                 <div className="col-lg-7">
                   <form className="p-lg-4" onSubmit={handleSubmit}>
                     <h2 className="h3 fw-bold mb-2">Đăng ký</h2>
-                    <p className="text-muted-shop mb-4">Điền thông tin để bắt đầu mua sắm tại Len Xinh Shop.</p>
+                    <p className="text-muted-shop mb-4">Điền thông tin để bắt đầu mua sắm tại Mon Crochet Shop.</p>
 
                     {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
 
