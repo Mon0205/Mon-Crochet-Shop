@@ -3,20 +3,15 @@ import { authApi } from '../api/authApi'
 import { AuthContext } from './authContextObject'
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const raw = localStorage.getItem('user')
-    return raw ? JSON.parse(raw) : null
-  })
-  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('token')))
 
   const saveSession = useCallback(({ user, token }) => {
     localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
     setUser(user)
   }, [])
 
   const saveUser = useCallback((user) => {
-    localStorage.setItem('user', JSON.stringify(user))
     setUser(user)
   }, [])
 
@@ -32,7 +27,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     localStorage.removeItem('token')
-    localStorage.removeItem('user')
     setUser(null)
   }, [])
 
@@ -44,7 +38,12 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (!token) return
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
     authApi
       .me()
       .then((res) => {
