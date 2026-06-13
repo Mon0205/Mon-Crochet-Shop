@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { discountApi } from '../api/discountApi'
 import { orderApi } from '../api/orderApi'
-import VoucherSelector, { discountStorageKey } from '../components/discount/VoucherSelector'
+import VoucherSelector from '../components/discount/VoucherSelector'
 import { useAuth } from '../hooks/useAuth'
 import { useCart } from '../hooks/useCart'
 import { formatPrice } from '../context/CartContext'
@@ -25,19 +25,6 @@ export default function Checkout() {
   const discountAmount = appliedDiscount?.discountAmount || 0
   const finalTotal = useMemo(() => Math.max(totalPrice - discountAmount, 0), [discountAmount, totalPrice])
 
-  useEffect(() => {
-    const storedCode = localStorage.getItem(discountStorageKey)
-    if (!storedCode || totalPrice <= 0) return
-
-    discountApi
-      .validateDiscount({ code: storedCode, subtotal: totalPrice })
-      .then((res) => setAppliedDiscount(res.data))
-      .catch(() => {
-        localStorage.removeItem(discountStorageKey)
-        setAppliedDiscount(null)
-      })
-  }, [totalPrice])
-
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
@@ -48,10 +35,8 @@ export default function Checkout() {
     try {
       const res = await discountApi.validateDiscount({ code, subtotal: totalPrice })
       setAppliedDiscount(res.data)
-      localStorage.setItem(discountStorageKey, res.data.discount.code)
     } catch (err) {
       setAppliedDiscount(null)
-      localStorage.removeItem(discountStorageKey)
       setDiscountError(err.message || 'Voucher không hợp lệ.')
     }
   }
@@ -59,7 +44,6 @@ export default function Checkout() {
   const removeVoucher = () => {
     setAppliedDiscount(null)
     setDiscountError('')
-    localStorage.removeItem(discountStorageKey)
   }
 
   const handleSubmit = async (event) => {
@@ -78,7 +62,6 @@ export default function Checkout() {
         shippingAddress: form,
         discountCode: appliedDiscount?.discount?.code || '',
       })
-      localStorage.removeItem(discountStorageKey)
       clearCart()
       navigate('/checkout/success')
     } catch (err) {

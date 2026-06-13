@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { discountApi } from '../api/discountApi'
-import VoucherSelector, { discountStorageKey } from '../components/discount/VoucherSelector'
+import VoucherSelector from '../components/discount/VoucherSelector'
 import { useCart } from '../hooks/useCart'
 import { formatPrice } from '../context/CartContext'
 import { squareThumbImage } from '../utils/imageUrl'
@@ -23,10 +23,8 @@ export default function Cart() {
     try {
       const res = await discountApi.validateDiscount({ code, subtotal: totalPrice })
       setAppliedDiscount(res.data)
-      localStorage.setItem(discountStorageKey, res.data.discount.code)
     } catch (err) {
       setAppliedDiscount(null)
-      localStorage.removeItem(discountStorageKey)
       setDiscountError(err.message || 'Voucher không hợp lệ.')
     }
   }
@@ -34,14 +32,6 @@ export default function Cart() {
   const removeVoucher = () => {
     setAppliedDiscount(null)
     setDiscountError('')
-    localStorage.removeItem(discountStorageKey)
-  }
-
-  const goToCheckout = () => {
-    if (appliedDiscount?.discount?.code) {
-      localStorage.setItem(discountStorageKey, appliedDiscount.discount.code)
-    }
-    navigate('/checkout')
   }
 
   if (items.length === 0) {
@@ -133,7 +123,7 @@ export default function Cart() {
                 <span>Tổng cộng</span>
                 <strong>{formatPrice(finalTotal)}</strong>
               </div>
-              <button className="btn btn-shop w-100 mt-3" type="button" onClick={goToCheckout}>
+              <button className="btn btn-shop w-100 mt-3" type="button" onClick={() => navigate('/checkout')}>
                 Thanh toán COD
               </button>
             </aside>

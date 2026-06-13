@@ -3,8 +3,6 @@ import { TicketPercent } from 'lucide-react'
 import { discountApi } from '../../api/discountApi'
 import { formatPrice } from '../../context/CartContext'
 
-export const discountStorageKey = 'checkoutDiscountCode'
-
 const getVoucherTitle = (voucher) =>
   voucher.type === 'percent' ? `Giảm ${voucher.value}%` : `Giảm ${formatPrice(voucher.value)}`
 
