@@ -357,7 +357,7 @@ a:hover {
   padding: 32px;
   background:
     linear-gradient(rgba(50, 28, 36, 0.52), rgba(50, 28, 36, 0.52)),
-    url("/src/assets/hero.png") center/cover;
+    url("/img/auth.png") center/cover;
   color: #fff;
 }
 
